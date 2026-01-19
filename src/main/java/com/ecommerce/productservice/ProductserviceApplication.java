@@ -1,0 +1,25 @@
+package com.ecommerce.productservice;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+@SpringBootApplication(scanBasePackages = {
+		"com.ecommerce.productservice", // Quét code của project hiện tại
+		"com.ecommerce.common"        // <--- Quét thêm code của common-library
+})
+@EnableFeignClients
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider") // Bật Auditing ở đây
+@EntityScan({
+		"com.ecommerce.productservice.model", // Quét Entity của project
+		"com.ecommerce.common.audit"        // <--- Quét BaseEntity trong thư viện
+})
+public class ProductserviceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ProductserviceApplication.class, args);
+	}
+
+}

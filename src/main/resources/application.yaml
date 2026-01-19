@@ -1,0 +1,63 @@
+server:
+  port: 8081 # Chạy port này để tránh đụng Gateway 8080
+
+spring:
+  application:
+    name: product-service
+
+  # --- CẤU HÌNH DATABASE (Thêm đoạn này) ---
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ecommerce_db?currentSchema=product_service  # 'product_db' là tên database
+    username: admin                                # Tên đăng nhập Postgres của bạn
+    password: password                                     # Mật khẩu Postgres của bạn
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # Tự động tạo bảng nếu chưa có
+    show-sql: true      # Hiện câu lệnh SQL để dễ debug
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# --- CẤU HÌNH RESILIENCE4J (Đã sửa lại định dạng YAML) ---
+resilience4j:
+  circuitbreaker:
+    instances:
+      productService:
+        # Nếu 50% request bị lỗi -> Ngắt cầu dao (Open State)
+        failure-rate-threshold: 50
+        # Thời gian chờ đợi trước khi thử mở lại cầu dao -> 5 giây
+        wait-duration-in-open-state: 5000
+        # Số lượng request tối thiểu để bắt đầu tính toán tỷ lệ lỗi
+        sliding-window-size: 5
+  timelimiter:
+    instances:
+      productService:
+        # Thời gian timeout: Nếu gọi sang Product quá 3 giây mà chưa xong -> Coi là lỗi
+        timeout-duration: 3s
+
+# Format log để hiện Trace ID và Span ID
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0 # 1.0 nghĩa là 100% request đều được gắn Trace ID
+  zipkin:
+    tracing:
+      endpoint: "http://localhost:9411/api/v2/spans" # Địa chỉ gửi báo cáo
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,prometheus" # Quan trọng nhất là chữ 'prometheus'
+    metrics:
+      tags:
+        application: ${spring.application.name} # Gán tên service vào dữ liệu để dễ lọc
