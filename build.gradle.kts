@@ -23,6 +23,15 @@ configurations {
 repositories {
 	mavenLocal()
 	mavenCentral()
+	maven {
+		name = "GitHubPackages"
+		url = uri("https://maven.pkg.github.com/Vanprolink/common-service")
+		credentials {
+			// Logic: Nếu có biến môi trường (CI) thì dùng -> Nếu không thì tìm trong gradle.properties (Local)
+			username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
+			password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.key") as String?
+		}
+	}
 }
 
 extra["springCloudVersion"] = "2023.0.0"
@@ -32,7 +41,7 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 	implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.ecommerce:commonlibary:1.0.0")
+	implementation("com.ecommerce:common:1.0.0")
 	implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 	// Thư viện giúp Spring Boot nói chuyện với Prometheus
 	implementation("io.micrometer:micrometer-registry-prometheus")
